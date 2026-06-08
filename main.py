@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, menu, orders
+from models import user, item, order
 from database import engine, Base
 
 # Create all tables

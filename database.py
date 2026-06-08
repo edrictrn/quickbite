@@ -1,12 +1,17 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
+
+
 # Đọc từ biến môi trường (thay bằng RDS endpoint khi deploy lên AWS)
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:password@localhost:5432/quickbite"
+    "postgresql://tranquochao:@localhost:5432/quickbite"
 )
 
 engine = create_engine(DATABASE_URL)
