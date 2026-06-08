@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import get_db
 from models.user import User
-from schemas.user import RegisterRequest, LoginRequest, TokenResponse, UserResponse
+from schemas.user import RegisterRequest, TokenResponse, UserResponse
 from auth_utils import hash_password, verify_password, create_access_token, get_current_user
 
 router = APIRouter()
@@ -10,14 +11,12 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserResponse, status_code=201)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
-    # Kiểm tra email đã tồn tại chưa
     existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email đã được sử dụng"
         )
-
     user = User(
         name=payload.name,
         email=payload.email,
@@ -30,10 +29,14 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == payload.email).first()
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),  # đổi ở đây
+    db: Session = Depends(get_db)
+):
+    # Swagger gửi email vào trường username
+    user = db.query(User).filter(User.email == form_data.username).first()
 
-    if not user or not verify_password(payload.password, user.password_hash):
+    if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email hoặc mật khẩu không đúng"
